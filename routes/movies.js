@@ -1,6 +1,7 @@
 const { json } = require("express");
 const express = require("express");
 const router =  express.Router();
+const bodyParser = require("body-parser") ;
 
 const movies = [
     { title: 'Jaws', year: 1975, rating: 8 },
@@ -9,11 +10,11 @@ const movies = [
     { title: 'الإرهاب والكباب‎', year: 1992, rating: 6.2 }
 ];
 
+//body parser
+router.use(bodyParser);
 
-router.get("/add",(req,res,next)=>{
-    //?title=<TITLE>&year=<YEAR>&rating=<RATING></RATING>
-
-    const {title,year,rating=4}=req.query;
+router.post("/",(req,res,next)=>{
+    const {title,year,rating=4}=req.body;
 
     if(title==undefined || year==undefined || !year.match(/^[0-9]{4,4}/)){
         res.status(403).json({status:403, error:true, message:'you cannot create a movie without providing a title and a year'});
@@ -30,14 +31,14 @@ router.get("/add",(req,res,next)=>{
     
 });
 
-router.get("/get",(req,res,next)=>{
+router.get("/",(req,res,next)=>{
     res.status(200).json({
         status:200,
         data:movies
     });
 });
 
-router.get("/get/id/:id",(req,res,next)=>{
+router.get("/id/:id",(req,res,next)=>{
     const id = req.params.id;
     //handle wrong it type
     if(!id.match(/[0-9]/)){
@@ -56,7 +57,7 @@ router.get("/get/id/:id",(req,res,next)=>{
 
 
 
-router.get("/delete/id/:id",(req,res,next)=>{
+router.delete("/id/:id",(req,res,next)=>{
     const id = req.params.id;
     //handle wrong it type
     if(!id.match(/[0-9]/)){
@@ -77,7 +78,7 @@ router.get("/delete/id/:id",(req,res,next)=>{
 });
 
 //Update
-router.get("/update/id/:id",(req,res,next)=>{
+router.put("/id/:id",(req,res,next)=>{
     const id = req.params.id;
     const {title,rating,year} = req.query;
 
@@ -102,7 +103,7 @@ router.get("/update/id/:id",(req,res,next)=>{
 });
 
 
-router.get("/get/by-date",(req,res,next)=>{
+router.get("/by-date",(req,res,next)=>{
     movies.sort((d1,d2)=>{return d1.year - d2.year});
     res.status(200).json({
         status:200,
@@ -112,7 +113,7 @@ router.get("/get/by-date",(req,res,next)=>{
 
  
 
-router.get("/get/by-rating",(req,res,next)=>{
+router.get("/by-rating",(req,res,next)=>{
     movies.sort((m1,m2)=>{return m2.rating - m1.rating});
     res.status(200).json({
         status:200,
@@ -121,7 +122,7 @@ router.get("/get/by-rating",(req,res,next)=>{
 });
 
 
-router.get("/get/by-title",(req,res,next)=>{
+router.get("/by-title",(req,res,next)=>{
     movies.sort((m1,m2)=>{return (m1.title>m2.title)?1:(m1.title== m2.title?0:-1)});
     res.status(200).json({
         status:200,
@@ -129,9 +130,5 @@ router.get("/get/by-title",(req,res,next)=>{
     });
 });
 
-router.get("/edit",(req,res,next)=>{
-});
-router.get("/delete",(req,res,next)=>{
-});
 
 module.exports = router;
