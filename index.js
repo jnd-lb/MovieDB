@@ -1,17 +1,12 @@
 // Importing
-const http = require('http');
-const app = require("express")();
+const express = require("express");
+const app = express();
 
 //Middleware
-
-
-//handle 404
-app.use(
-    (req,res,res)=>{
-       console.log("hello");
+app.use("", (req,res,next)=>{
+        res.send("ok");
     }
 );
 
 // Creating a server and listening at port 3000
-const server = http.createServer();
-server.listen(3000);
+app.listen(3000);
