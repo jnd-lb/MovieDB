@@ -9,7 +9,7 @@ app.use("/",homeRouter);
 
 app.use("/movies",moviesRouter);
 
-//404
+//404 
 app.use((req,res,next)=>{
     res.status(404).json("Sorry but we do not have what you are looking for ....bas jayina :)")
 });

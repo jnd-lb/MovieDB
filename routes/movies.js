@@ -76,7 +76,7 @@ router.get("/delete/id/:id",(req,res,next)=>{
     });
 });
 
-
+//Update
 router.get("/update/id/:id",(req,res,next)=>{
     const id = req.params.id;
     const {title,rating,year} = req.query;
