@@ -1,3 +1,4 @@
+const { json } = require("express");
 const express = require("express");
 const router =  express.Router();
 
@@ -10,6 +11,23 @@ const movies = [
 
 
 router.get("/add",(req,res,next)=>{
+    //?title=<TITLE>&year=<YEAR>&rating=<RATING></RATING>
+
+    const {title,year,rating=4}=req.query;
+
+    if(title==undefined || year==undefined || !year.match(/^[0-9]{4,4}/)){
+        res.status(403).json({status:403, error:true, message:'you cannot create a movie without providing a title and a year'});
+        return;
+    }
+    
+    console.log(req.query.title)
+    movies.push({
+        title:title,
+        year:year,
+        rating: parseFloat(rating)
+    });
+    res.status(201).json({status:201,data:movies});
+    
 });
 
 router.get("/get",(req,res,next)=>{
