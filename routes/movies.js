@@ -77,6 +77,31 @@ router.get("/delete/id/:id",(req,res,next)=>{
 });
 
 
+router.get("/update/id/:id",(req,res,next)=>{
+    const id = req.params.id;
+    const {title,rating,year} = req.query;
+
+    //handle wrong it type
+    if(!id.match(/[0-9]/)){
+        res.status(403).json({status:403, error:true, message:'the id should be a digit'});
+    }
+    
+    //handle not existing movie
+    if(id<0 || id>=movies.length){
+        res.status(404).json({status:404, error:true, message:`the movie ${id} does not exist`});
+    }
+
+    if(title) movies[id].title=title;
+    if(year) movies[id].year=+year;
+    if(rating) movies[id].rating=parseFloat(rating);
+    
+    res.status(200).json({
+        status:200,
+        data:movies
+    });
+});
+
+
 router.get("/get/by-date",(req,res,next)=>{
     movies.sort((d1,d2)=>{return d1.year - d2.year});
     res.status(200).json({
