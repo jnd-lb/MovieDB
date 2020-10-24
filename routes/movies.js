@@ -65,24 +65,7 @@ router.get("/", (req, res, next) => {
 });
 
 
-/////////////Get By ID/////////////
-router.get("/:id", (req, res, next) => {
-    const id = req.params.id;
-    const details = { '_id': ObjectID(id) };
 
-    db.collection('movies').findOne(details, (err, item) => {
-        //handle not existing movie
-        console.log(err)
-        console.log(item)
-        if (err) { res.status(404).json({ status: 404, error: true, message: `the movie ${id} does not exist` }); }
-        else {
-            res.status(200).json({
-                status: 200,
-                data: item
-            });
-        }
-    });
-});
 
 /////////////Delete By Id/////////////
 router.delete("/:id", (req, res, next) => {
@@ -124,30 +107,87 @@ router.put("/:id", (req, res, next) => {
     });
 });
 
+/////////////Get By date "By year" /////////////
 router.get("/by-date", (req, res, next) => {
-    //db.bios.find().sort( { name: 1 } )
-    movies.sort((d1, d2) => { return d1.year - d2.year });
-    res.status(200).json({
-        status: 200,
-        data: movies
-    });
+
+    db.collection('movies').find({},
+        (err,elements) => {
+            let arrayOfElements = [];
+            elements.sort({year:1});
+           elements.forEach((element,err)=> {
+               if(err) console.log(err);
+             //  console.log(element);
+               arrayOfElements.push(element);
+           },()=>{
+               console.log(arrayOfElements);
+               res.status(200).json({
+                   status: 200,
+                   data: arrayOfElements
+               })
+           });
+       }
+   );
 });
 
 router.get("/by-rating", (req, res, next) => {
-    movies.sort((m1, m2) => { return m2.rating - m1.rating });
-    res.status(200).json({
-        status: 200,
-        data: movies
-    });
+    db.collection('movies').find({},
+        (err,elements) => {
+            let arrayOfElements = [];
+            elements.sort({rating:1});
+           elements.forEach((element,err)=> {
+               if(err) console.log(err);
+             //  console.log(element);
+               arrayOfElements.push(element);
+           },()=>{
+               console.log(arrayOfElements);
+               res.status(200).json({
+                   status: 200,
+                   data: arrayOfElements
+               })
+           });
+       }
+   );
 });
 
 router.get("/by-title", (req, res, next) => {
-    movies.sort((m1, m2) => { return (m1.title > m2.title) ? 1 : (m1.title == m2.title ? 0 : -1) });
-    res.status(200).json({
-        status: 200,
-        data: movies
+    db.collection('movies').find({},
+        (err,elements) => {
+            let arrayOfElements = [];
+            elements.sort({title:1});
+           elements.forEach((element,err)=> {
+               if(err) console.log(err);
+             //  console.log(element);
+               arrayOfElements.push(element);
+           },()=>{
+               console.log(arrayOfElements);
+               res.status(200).json({
+                   status: 200,
+                   data: arrayOfElements
+               })
+           });
+       }
+   );
+});
+
+/////////////Get By ID/////////////
+router.get("/:id", (req, res, next) => {
+    const id = req.params.id;
+    const details = { '_id': ObjectID(id) };
+
+    db.collection('movies').findOne(details, (err, item) => {
+        //handle not existing movie
+        console.log(err)
+        console.log(item)
+        if (err) { res.status(404).json({ status: 404, error: true, message: `the movie ${id} does not exist` }); }
+        else {
+            res.status(200).json({
+                status: 200,
+                data: item
+            });
+        }
     });
 });
+
 
 module.exports = (_db) => {
     db = _db;
