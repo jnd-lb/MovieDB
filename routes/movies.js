@@ -107,7 +107,7 @@ router.put("/:id", (req, res, next) => {
     });
 });
 
-/////////////Get By date "By year" /////////////
+/////////////Get By date "By year assending" /////////////
 router.get("/by-date", (req, res, next) => {
 
     db.collection('movies').find({},
@@ -129,11 +129,12 @@ router.get("/by-date", (req, res, next) => {
    );
 });
 
+//////////Get all sorted by rating///////////////
 router.get("/by-rating", (req, res, next) => {
     db.collection('movies').find({},
         (err,elements) => {
             let arrayOfElements = [];
-            elements.sort({rating:1});
+            elements.sort({rating:-1});
            elements.forEach((element,err)=> {
                if(err) console.log(err);
              //  console.log(element);
@@ -149,6 +150,7 @@ router.get("/by-rating", (req, res, next) => {
    );
 });
 
+/////////////Get all sorted by title////////////
 router.get("/by-title", (req, res, next) => {
     db.collection('movies').find({},
         (err,elements) => {
