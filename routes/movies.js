@@ -1,8 +1,9 @@
 const { json } = require("express");
-const express = require("express");
+const router = require("express").Router();
 const bodyParser = require("body-parser");
-const router = require("./home");
 const {ObjectID} = require('mongodb');
+const guard = require("../guard");
+
 
 const movies = [
     { title: 'Jaws', year: 1975, rating: 8 },
@@ -19,7 +20,7 @@ router.use(bodyParser.json());
 
 
 /////////////INSERT/////////////////
-router.post("/", (req, res, next) => {
+router.post("/", guard, (req, res, next) => {
     //TODO sanitize user input
     let { title, year, rating = 4 } = req.body;
 
@@ -68,7 +69,7 @@ router.get("/", (req, res, next) => {
 
 
 /////////////Delete By Id/////////////
-router.delete("/:id", (req, res, next) => {
+router.delete("/:id",guard,  (req, res, next) => {
     const id = req.params.id;
     const details = { '_id': ObjectID(id) };
     db.collection('movies').deleteOne(details, (err, item) => {
@@ -84,7 +85,7 @@ router.delete("/:id", (req, res, next) => {
 });
 
 /////////////Update By Id/////////////
-router.put("/:id", (req, res, next) => {
+router.put("/:id", guard, (req, res, next) => {
     const id = req.params.id;
 
     const { title, rating, year } = req.body;
