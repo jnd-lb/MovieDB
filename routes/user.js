@@ -4,9 +4,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const users = [
-    {
-        
-    }
+    {username:"jihad",password:""}
 ];
 
 router.use(bodyParser.json());
@@ -22,7 +20,7 @@ router.post("/signin", (req, res) => {
         status: 401, message: "User Not Found it is either the username or password is wrong", error: true
     });
 
-    if (result == 500) return res.status(500).json({ status: 500, message: "there's an internal error" }, error: true);
+    if (result == 500) return res.status(500).json({ status: 500, message: "there's an internal error" , error: true});
 
 
     res.status(200).json({
@@ -41,16 +39,14 @@ router.post("/signin", (req, res) => {
 const isexist = (username, password) => {
     let promise = mull;
     let id = 0;
-    for (user in users) {
-        user => {
-            if (user.username == username) {
+    for (let i = 0; i < users.length ; i++ ) {
+                   if (users[i].username == username) {
                 // i implimented this way to not wast time hashing the password before if the username is not exist / and do not use the callback to make the code sycronously
                 promise = bcrypt.compare(password, users[id].password);
-                break;
+                break
             }
-            id++;
-        }
-    }
+            id = i;
+           }
 
     // return bcrypt.hash(password, 10, (err, hash) => {
     //     if (err) {
@@ -82,6 +78,8 @@ router.post('/signup', (req, res) => {
     //TODO sanitize and validate
 
     let {password,username} = req.body;
+    console.log(username+" "+password)
+
         return bcrypt.hash(password, 10, (err, hash) => {
         if (err) {
             return res.status(500).json({
@@ -92,6 +90,7 @@ router.post('/signup', (req, res) => {
           }
         
           users.push({username:username,password:hash});
+          console.log(users);
           const token = jwt.sign(
             {
                 username: username,
@@ -102,7 +101,10 @@ router.post('/signup', (req, res) => {
                 expiresIn: "1h"
             }
         );
-        return token
+        return res.status(201).json({status:201,message:"signed up successfully",username:username,token: "Bearer "+token});
+
         });
 
 });
+
+module.exports = router;

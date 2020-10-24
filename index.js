@@ -3,7 +3,7 @@ const app = require("express")();
 const db = require('./config/db');
 const mongoose = require('mongoose');
 const MongoClient = require('mongodb').MongoClient;
-
+const userRoute= require("./routes/user")
 let database = null;
 
 
@@ -25,10 +25,11 @@ client.connect(err => {
     //import routers and pass the database
     const moviesRouter = require("./routes/movies.js")(db);
   //const homeRouter = require("./routes/home.js")(db);
-  
+
     //Middleware
   //app.use("/", homeRouter);
     app.use("/movies", moviesRouter);
+    app.use("/user",userRoute);
 
     //404 
     app.use((req, res, next) => {
@@ -44,4 +45,4 @@ client.connect(err => {
 
 
 // Creating a server and listening at port 3000
-app.listen(3000);
+app.listen(8800);
