@@ -1,7 +1,8 @@
 const { json } = require("express");
 const express = require("express");
-const router =  express.Router();
-const bodyParser = require("body-parser") ;
+const bodyParser = require("body-parser");
+const router = require("./home");
+const {ObjectID} = require('mongodb');
 
 const movies = [
     { title: 'Jaws', year: 1975, rating: 8 },
@@ -10,125 +11,145 @@ const movies = [
     { title: 'الإرهاب والكباب‎', year: 1992, rating: 6.2 }
 ];
 
+let db = null;
+
+
 //body parser
-router.use(bodyParser);
+router.use(bodyParser.json());
 
-router.post("/",(req,res,next)=>{
-    const {title,year,rating=4}=req.body;
 
-    if(title==undefined || year==undefined || !year.match(/^[0-9]{4,4}/)){
-        res.status(403).json({status:403, error:true, message:'you cannot create a movie without providing a title and a year'});
+/////////////INSERT/////////////////
+router.post("/", (req, res, next) => {
+    //TODO sanitize user input
+    let { title, year, rating = 4 } = req.body;
+
+    //handle missing feild
+    if (title == undefined || year == undefined || !(year > 1800 && year < 2021)) {
+        res.status(403).json({ status: 403, error: true, message: 'you cannot create a movie without providing a title and a year' });
         return;
     }
-    
-    console.log(req.query.title)
-    movies.push({
-        title:title,
-        year:year,
+
+    const newMovie = {
+        title: title,
+        year: year,
         rating: parseFloat(rating)
+    };
+
+    db.collection('movies').insertOne(newMovie, (err, results) => {
+        if (err) res.status(500).json({ status: 500, error: true, message: "internal error" });
+        res.status(201).json({ status: 201, data: results["ops"][0] });
     });
-    res.status(201).json({status:201,data:movies});
+
     
 });
 
-router.get("/",(req,res,next)=>{
-    res.status(200).json({
-        status:200,
-        data:movies
-    });
+/////////////Read ALL//////////////
+router.get("/", (req, res, next) => {
+
+    db.collection('movies').find({},
+         (err,elements) => {
+             let arrayOfElements = [];
+            elements.forEach((element,err)=> {
+                if(err) console.log(err);
+              //  console.log(element);
+                arrayOfElements.push(element);
+            },()=>{
+                console.log(arrayOfElements);
+                res.status(200).json({
+                    status: 200,
+                    data: arrayOfElements
+                })
+            });
+        }
+    );
 });
 
-router.get("/id/:id",(req,res,next)=>{
+
+/////////////Get By ID/////////////
+router.get("/:id", (req, res, next) => {
     const id = req.params.id;
-    //handle wrong it type
-    if(!id.match(/[0-9]/)){
-        res.status(403).json({status:403, error:true, message:'the id should be a digit'});
-    }
-    
-    //handle not existing movie
-    if(id<0 || id>=movies.length){
-        res.status(404).json({status:404, error:true, message:`the movie ${id} does not exist`});
-    }
-    res.status(200).json({
-        status:200,
-        data:movies[id]
+    const details = { '_id': ObjectID(id) };
+
+    db.collection('movies').findOne(details, (err, item) => {
+        //handle not existing movie
+        console.log(err)
+        console.log(item)
+        if (err) { res.status(404).json({ status: 404, error: true, message: `the movie ${id} does not exist` }); }
+        else {
+            res.status(200).json({
+                status: 200,
+                data: item
+            });
+        }
     });
 });
 
-
-
-router.delete("/id/:id",(req,res,next)=>{
+/////////////Delete By Id/////////////
+router.delete("/:id", (req, res, next) => {
     const id = req.params.id;
-    //handle wrong it type
-    if(!id.match(/[0-9]/)){
-        res.status(403).json({status:403, error:true, message:'the id should be a digit'});
-    }
-    
-    //handle not existing movie
-    if(id<0 || id>=movies.length){
-        res.status(404).json({status:404, error:true, message:`the movie ${id} does not exist`});
-    }
-
-    movies.splice(id,1);
-
-    res.status(200).json({
-        status:200,
-        data:movies
+    const details = { '_id': ObjectID(id) };
+    db.collection('movies').deleteOne(details, (err, item) => {
+        //handle not existing movie
+        if (err) {
+            res.status(404).json({ status: 404, error: true, message: `the movie ${id} does not exist` });
+        } else {
+            //redirected to the the GET /movies/ to list all the remaining movies
+            res.status(200);
+            res.redirect("/movies/");
+        }
     });
 });
 
-//Update
-router.put("/id/:id",(req,res,next)=>{
+/////////////Update By Id/////////////
+router.put("/:id", (req, res, next) => {
     const id = req.params.id;
-    const {title,rating,year} = req.query;
 
-    //handle wrong it type
-    if(!id.match(/[0-9]/)){
-        res.status(403).json({status:403, error:true, message:'the id should be a digit'});
-    }
-    
-    //handle not existing movie
-    if(id<0 || id>=movies.length){
-        res.status(404).json({status:404, error:true, message:`the movie ${id} does not exist`});
-    }
+    const { title, rating, year } = req.body;
 
-    if(title) movies[id].title=title;
-    if(year) movies[id].year=+year;
-    if(rating) movies[id].rating=parseFloat(rating);
-    
-    res.status(200).json({
-        status:200,
-        data:movies
+    const details = { '_id': ObjectID(id)};
+    const updateMovie = {};
+
+    if (title) updateMovie["title"] = title;
+    if (year) updateMovie["year"] = +year;
+    if (rating) updateMovie["rating"] = parseFloat(rating);
+
+    db.collection('movies').update(details, { $set:updateMovie}, (err, result) => {
+        if (err) {
+            res.status(500).json({ status: 500, error: true, message: "internal error" });
+        } else {
+            //display updated entry
+            res.status(200);
+            res.redirect(`/movies/${id}`);
+        }
     });
 });
 
-
-router.get("/by-date",(req,res,next)=>{
-    movies.sort((d1,d2)=>{return d1.year - d2.year});
+router.get("/by-date", (req, res, next) => {
+    //db.bios.find().sort( { name: 1 } )
+    movies.sort((d1, d2) => { return d1.year - d2.year });
     res.status(200).json({
-        status:200,
-        data:movies
+        status: 200,
+        data: movies
     });
 });
 
- 
-
-router.get("/by-rating",(req,res,next)=>{
-    movies.sort((m1,m2)=>{return m2.rating - m1.rating});
+router.get("/by-rating", (req, res, next) => {
+    movies.sort((m1, m2) => { return m2.rating - m1.rating });
     res.status(200).json({
-        status:200,
-        data:movies
+        status: 200,
+        data: movies
     });
 });
 
-
-router.get("/by-title",(req,res,next)=>{
-    movies.sort((m1,m2)=>{return (m1.title>m2.title)?1:(m1.title== m2.title?0:-1)});
+router.get("/by-title", (req, res, next) => {
+    movies.sort((m1, m2) => { return (m1.title > m2.title) ? 1 : (m1.title == m2.title ? 0 : -1) });
     res.status(200).json({
-        status:200,
-        data:movies
+        status: 200,
+        data: movies
     });
 });
 
-
-module.exports = router;
+module.exports = (_db) => {
+    db = _db;
+    return router;
+}
