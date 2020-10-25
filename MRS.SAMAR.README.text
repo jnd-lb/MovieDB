@@ -1,3 +1,8 @@
 please when tryng to send insert/delete/add requwst please as the Token in the header 
 authorization : bearer <token>
 
+to login using already created user
+{
+    "username":"default",
+    "password":"default"
+}
